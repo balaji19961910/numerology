@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Numerology</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+	<style>
+		.hide {
+			display: none;
+		}
+
+		td,
+		th {
+			border-right: dashed #e3e3e3 1px;
+		}
+
+		td small {
+			font-size: xx-small;
+		}
+	</style>
+</head>
+
+<body>
+	<h1 class="display-4 text-center">Numerology</h1>
+	<div class="container">
+		<div class="mb-3">
+			<label for="dob" class="form-label">Date Of Birth</label>
+			<input type="date" class="form-control" id="dob" value="2024-06-07">
+		</div>
+		<div class="mb-3">
+			<label for="inputData" class="form-label">Names (comma-separated)</label>
+			<textarea class="form-control" id="inputData" rows="3">Vakthra,Vaakthra,Vaakthraa,Vakthra Lakshmi,Vaakthra Lakshmi,Vaakthraa Lakshmi,Keerthana,Siddhikshaa,Kamyaa,Nirmamaa,Diptaa,Vasudaa,Siddhikshaa,Vasuda,Bavana,Kathiyayini,Kalathmika,Varnaroopini,Vishwaranjani,Viragini,Vishnuroopini,Velvizhi,Krishnapriya</textarea>
+		</div>
+		<div class="mb-3">
+			<label for="lastNameData" class="form-label">Last Name (comma-separated)</label>
+			<textarea class="form-control" id="lastNameData" rows="1">,B,Balaji</textarea>
+		</div>
+
+		<button class="btn btn-primary mt-2" onclick="calc(1)">Calculate (Method 1)</button>
+		<button class="btn btn-outline-primary mt-2" onclick="calc(2)">Calculate (Method 2)</button>
+
+		<br>
+		<br>
+
+		<blockquote class="blockquote-footer">
+			Method 1: All favorable numbers are given 1 point.
+		</blockquote>
+		<blockquote class="blockquote-footer">
+			Method 2: All favorable numbers are given 1 point, 11, 22 and 33 are given additional 1, 2 and 3 points.
+		</blockquote>
+
+		<h3 class="hide">Life Path Number: <span id="life-path-number"></span></h3>
+
+		<div class="mt-3 hide">
+			<table class="table">
+				<thead>
+					<tr id="tableHeader"></tr>
+					<tr id="tableHeader1"></tr>
+				</thead>
+				<tbody id="tableContainer"></tbody>
+			</table>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+	<script>
+		const inputData = document.getElementById("inputData");
+		const lastNameData = document.getElementById("lastNameData");
+		const calculateButton = document.getElementById("calculateButton");
+		const lifePathNumber = document.getElementById("life-path-number");
+		const dob = document.getElementById("dob");
+		const tableContainer = document.getElementById("tableContainer");
+		const tableHeader = document.getElementById("tableHeader");
+		const tableHeader1 = document.getElementById("tableHeader1");
+
+		function reduceToSingleDigit(number) {
+			while (number > 9 && number != 11 && number != 22 && number != 33) {
+				number = number.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+			}
+			return number;
+		}
+
+		function calculateLifePathNumber(birthdate) {
+			const year = reduceToSingleDigit([...birthdate.slice(0, 4)].reduce((sum, digit) => sum + parseInt(digit), 0));
+			const month = reduceToSingleDigit([...birthdate.slice(4, 6)].reduce((sum, digit) => sum + parseInt(digit), 0));
+			const day = reduceToSingleDigit([...birthdate.slice(6)].reduce((sum, digit) => sum + parseInt(digit), 0));
+			return reduceToSingleDigit(year + month + day);
+		}
+
+		function calculateExpressionNumber(name) {
+			const letters = name.toUpperCase().replace(/[^A-Z]/g, ""); // Remove non-letters
+			let sum = 0;
+			for (const letter of letters) {
+				sum += letter.charCodeAt(0) - 64; // A=1, B=2, etc.
+			}
+			return reduceToSingleDigit(sum);
+		}
+
+		function calculateSoulUrgeNumber(name) {
+			const vowels = "AEIOU";
+			let sum = 0;
+			for (const letter of name.toUpperCase()) {
+				if (vowels.includes(letter)) {
+					sum += letter.charCodeAt(0) - 64;
+				}
+			}
+			return reduceToSingleDigit(sum);
+		}
+
+		const numberMeanings = {
+			1: "Leadership, Independence",
+			2: "Harmony, Cooperation",
+			3: "Creativity, Expression",
+			4: "Stability, Order",
+			5: "Freedom, Adventure",
+			6: "Responsibility, Nurturing",
+			7: "Introspection, Wisdom",
+			8: "Power, Success",
+			9: "Compassion, Humanitarian",
+			11: "The Intuition, Spiritual Enlightenment", // Master Number
+			22: "The Master Builder, Visionary",       // Master Number
+			33: "The Master Preachers, Humanity",       // Master Number
+		};
+
+		function calc(method = 1) {
+			// Example usage
+			const dateOfBirth = dob.value.split('-').join('');
+
+			const lifePath = calculateLifePathNumber(dateOfBirth);
+			lifePathNumber.innerText = lifePath;
+
+			const names = inputData.value.trim().split(",").map(x => x.trim());
+			const lastNames = lastNameData.value.trim().split(",").map(x => x.trim());
+			const arr = [];
+			for (const name of names) {
+				const arr2 = [];
+				let score = 0;
+				for (const lastname of lastNames) {
+					const expression = calculateExpressionNumber(`${name} ${lastname}`.trim());
+					const soul_urge = calculateSoulUrgeNumber(`${name} ${lastname}`.trim());
+
+
+					if (expression % lifePath == 0) score++;
+					if (soul_urge % lifePath == 0) score++;
+					if (expression % 11 == 0) {
+						score += method == 1 ? 1 : (1 + (expression / 11));
+					}
+					if (soul_urge % 11 == 0) {
+						score += method == 1 ? 1 : (1 + (soul_urge / 11));
+					}
+					arr2.push({ name: `${name} ${lastname}`.trim(), expression, soul_urge });
+				}
+				arr.push({ arr2, score });
+			}
+
+			tableContainer.innerHTML = '';
+			tableHeader.innerHTML = '';
+			tableHeader1.innerHTML = '';
+
+			const th0 = document.createElement('th');
+			th0.setAttribute('scope', 'col');
+			th0.setAttribute('rowspan', '2');
+			th0.innerText = '#';
+			tableHeader.appendChild(th0);
+
+			const th1 = document.createElement('th');
+			th1.setAttribute('scope', 'col');
+			th1.setAttribute('rowspan', '2');
+			th1.innerText = 'Score';
+			tableHeader.appendChild(th1);
+
+			for (const lastname of lastNames) {
+				const th = document.createElement('th');
+				th.setAttribute('scope', 'col');
+				th.setAttribute('colspan', '3');
+				th.classList.add('text-center');
+				th.innerText = lastname;
+				tableHeader.appendChild(th);
+
+				const thName = document.createElement('th');
+				thName.setAttribute('scope', 'col');
+				thName.innerText = 'Name';
+				tableHeader1.appendChild(thName);
+
+				const thExp = document.createElement('th');
+				thExp.setAttribute('scope', 'col');
+				thExp.innerText = 'Expression';
+				tableHeader1.appendChild(thExp);
+
+				const thSoul = document.createElement('th');
+				thSoul.setAttribute('scope', 'col');
+				thSoul.innerText = 'Soul Urge';
+				tableHeader1.appendChild(thSoul);
+
+			}
+
+			let i = 0;
+			for (const arr2Item of arr.sort((a, b) => b.score - a.score)) {
+				const tr = document.createElement('tr');
+				tableContainer.appendChild(tr);
+
+				const td1 = document.createElement('td');
+				td1.setAttribute('scope', 'row');
+				td1.innerText = ++i;
+				tr.appendChild(td1);
+
+				const td2 = document.createElement('td');
+				td2.innerText = arr2Item.score;
+				tr.appendChild(td2);
+
+				for (const item of arr2Item.arr2) {
+					const nameTd = document.createElement('td');
+					const expressionTd = document.createElement('td');
+					const soulTd = document.createElement('td');
+					nameTd.innerText = item.name;
+					expressionTd.innerText = item.expression;
+					soulTd.innerText = item.soul_urge;
+
+					const smallExp = document.createElement('small');
+					const smallSoul = document.createElement('small');
+
+					smallExp.innerText = numberMeanings[item.expression];
+					expressionTd.appendChild(document.createElement('br'));
+					expressionTd.appendChild(smallExp);
+
+					smallSoul.innerText = numberMeanings[item.soul_urge];
+					soulTd.appendChild(document.createElement('br'));
+					soulTd.appendChild(smallSoul);
+
+					if (item.expression % lifePath == 0) expressionTd.classList.add('bg-success-subtle');
+					if (item.soul_urge % lifePath == 0) soulTd.classList.add('bg-success-subtle');
+
+					if (item.expression % 11 == 0) {
+						expressionTd.classList.add('bg-success');
+						expressionTd.classList.add('bg-opacity-50');
+						expressionTd.classList.add('text-white');
+					}
+					if (item.soul_urge % 11 == 0) {
+						soulTd.classList.add('bg-success');
+						soulTd.classList.add('bg-opacity-50');
+						soulTd.classList.add('text-white');
+					}
+
+
+
+					tr.appendChild(nameTd);
+					tr.appendChild(expressionTd);
+					tr.appendChild(soulTd);
+				}
+			}
+			lifePathNumber.closest('h3').classList.remove('hide');
+			tableContainer.closest('div').classList.remove('hide');
+		}
+
+		if (inputData.value.trim() != '') {
+			calc();
+		}
+
+	</script>
+</body>
+
+</html>
